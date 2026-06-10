@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>RIG Score Calculator</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #647084;
+      --border: #d9dee8;
+      --accent: #1f5eff;
+      --accent-soft: #eaf0ff;
+      --danger: #b42318;
+      --warning: #9a6700;
+      --success: #067647;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 18px;
+      padding-bottom: 40px;
+    }
+
+    header {
+      margin: 8px 0 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .result-card {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .result-box {
+      background: var(--accent-soft);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 82px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .score {
+      font-size: 2.4rem;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .category {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .disposition {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #f2f4f7;
+      font-weight: 700;
+    }
+
+    .disposition span {
+      font-weight: 800;
+    }
+
+    .rig1 { color: var(--success); }
+    .rig2 { color: var(--warning); }
+    .rig3 { color: var(--danger); }
+
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 10px;
+      margin-bottom: 16px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      user-select: none;
+      min-height: 58px;
+    }
+
+    .item + .item {
+      border-top: 1px solid #eef1f6;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .item:hover {
+      background: #f8faff;
+    }
+
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border: 2px solid #a8b2c4;
+      border-radius: 8px;
+      display: grid;
+      place-content: center;
+      flex: 0 0 auto;
+      background: white;
+    }
+
+    input[type="checkbox"]::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      transform: scale(0);
+      transition: 100ms transform ease-in-out;
+      border-radius: 4px;
+      background: var(--accent);
+    }
+
+    input[type="checkbox"]:checked {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    input[type="checkbox"]:checked::before {
+      transform: scale(1);
+    }
+
+    .item-text {
+      flex: 1;
+      font-weight: 650;
+    }
+
+    .points {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--muted);
+      background: #eef1f6;
+      border-radius: 999px;
+      padding: 5px 9px;
+      white-space: nowrap;
+    }
+
+    .override {
+      border: 2px solid #fecdca;
+      background: #fff7f7;
+    }
+
+    .override .points {
+      color: var(--danger);
+      background: #fee4e2;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin: 14px 0 0;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: var(--text);
+      color: white;
+      flex: 1;
+    }
+
+    button.secondary {
+      background: #e6eaf2;
+      color: var(--text);
+    }
+
+    .info {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .info strong {
+      color: var(--text);
+    }
+
+    .small {
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .wrap {
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: 1.55rem;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .score {
+        font-size: 2.15rem;
+      }
+
+      .category {
+        font-size: 1.35rem;
+      }
+
+      .item {
+        padding: 14px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>RIG Score Calculator</h1>
+      <p class="subtitle">Rib Injury Guideline score. No patient data is stored or transmitted.</p>
+    </header>
+
+    <section class="result-card" aria-live="polite">
+      <div class="result-grid">
+        <div class="result-box">
+          <div class="label">RIG Score</div>
+          <div class="score" id="score">0</div>
+        </div>
+        <div class="result-box">
+          <div class="label">Category</div>
+          <div class="category rig1" id="category">RIG 1</div>
+        </div>
+      </div>
+      <div class="disposition" id="disposition">
+        Suggested disposition: <span>Discharge</span>
+      </div>
+      <div class="buttons">
+        <button type="button" class="secondary" id="reset">Reset</button>
+      </div>
+    </section>
+
+    <section class="section" aria-label="RIG criteria">
+      <label class="item">
+        <input type="checkbox" data-points="4" />
+        <span class="item-text">Age &gt; 60 years</span>
+        <span class="points">+4</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="4" />
+        <span class="item-text">Incentive spirometry &lt; 750 mL</span>
+        <span class="points">+4</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="2" />
+        <span class="item-text">Severe pulmonary contusion on CT scan</span>
+        <span class="points">+2</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="2" />
+        <span class="item-text">Rib fractures &gt; 5</span>
+        <span class="points">+2</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="2" />
+        <span class="item-text">COPD, asthma, or smoker</span>
+        <span class="points">+2</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="2" />
+        <span class="item-text">Hemothorax, pneumothorax, or chest tube</span>
+        <span class="points">+2</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="1" />
+        <span class="item-text">Pain score &gt; 6/10</span>
+        <span class="points">+1</span>
+      </label>
+
+      <label class="item">
+        <input type="checkbox" data-points="1" />
+        <span class="item-text">Weak or absent cough</span>
+        <span class="points">+1</span>
+      </label>
+
+      <label class="item override">
+        <input type="checkbox" id="extrathoracic" data-points="0" />
+        <span class="item-text">Severe extrathoracic injury</span>
+        <span class="points">Auto RIG 3</span>
+      </label>
+    </section>
+
+    <section class="info">
+      <strong>Scoring:</strong><br />
+      RIG 1: score ≤ 2 → Discharge<br />
+      RIG 2: score 3–9 → Ward / Floor<br />
+      RIG 3: score ≥ 10 OR severe extrathoracic injury → ICU
+
+      <div class="small">
+        For clinical reference only. Use clinical judgment and local trauma guidelines.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+      const scoreEl = document.getElementById('score');
+      const categoryEl = document.getElementById('category');
+      const dispositionEl = document.getElementById('disposition');
+      const extrathoracicEl = document.getElementById('extrathoracic');
+      const resetBtn = document.getElementById('reset');
+
+      function calculate() {
+        const score = checkboxes.reduce((total, box) => {
+          if (!box.checked) return total;
+          return total + Number(box.dataset.points || 0);
+        }, 0);
+
+        const autoRIG3 = extrathoracicEl.checked;
+
+        let category = 'RIG 1';
+        let disposition = 'Discharge';
+        let className = 'category rig1';
+
+        if (autoRIG3 || score >= 10) {
+          category = 'RIG 3';
+          disposition = 'ICU';
+          className = 'category rig3';
+        } else if (score >= 3) {
+          category = 'RIG 2';
+          disposition = 'Ward / Floor';
+          className = 'category rig2';
+        }
+
+        scoreEl.textContent = score;
+        categoryEl.textContent = category;
+        categoryEl.className = className;
+        dispositionEl.innerHTML = 'Suggested disposition: <span>' + disposition + '</span>';
+      }
+
+      checkboxes.forEach(box => box.addEventListener('change', calculate));
+
+      resetBtn.addEventListener('click', function () {
+        checkboxes.forEach(box => { box.checked = false; });
+        calculate();
+      });
+
+      calculate();
+    })();
+  </script>
+</body>
+</html>
